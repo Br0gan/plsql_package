@@ -4,7 +4,7 @@ CREATE OR REPLACE PACKAGE PACKAGE_API AS
 module_  CONSTANT VARCHAR2(25) := 'ORDER';
 lu_name_ CONSTANT VARCHAR2(25) := 'CustomerOrderFlow';
 
-PROCEDURE Coreys_Release;
+PROCEDURE Release_Orders;
 
 PROCEDURE Pop_Delivery_Details(order_no_ in varchar2);
 
@@ -24,15 +24,15 @@ FUNCTION Find_Value(string_ in varchar2, delimiter_ in varchar2, iteration_ in n
 
 FUNCTION Get_Site_From_Inv(invoice_no_ in VARCHAR2) RETURN VARCHAR2;
 
-FUNCTION CheckIT_Dummy(delivery_key_ IN VARCHAR2) RETURN VARCHAR2;
+FUNCTION Check_Del_Key(delivery_key_ IN VARCHAR2) RETURN VARCHAR2;
 
 FUNCTION Get_Invo_Stat_Sum(customer_no_ IN VARCHAR2, start_ IN VARCHAR2, end_ IN VARCHAR2) RETURN NUMBER;
 
-END COREYS_PACKAGE_API;
+END PACKAGE_API;
 /
 
 
-CREATE OR REPLACE PACKAGE BODY COREYS_PACKAGE_API AS
+CREATE OR REPLACE PACKAGE BODY PACKAGE_API AS
 FUNCTION Get_Site_From_Inv(invoice_no_ in VARCHAR2) RETURN VARCHAR2
 IS
 
@@ -52,7 +52,7 @@ BEGIN
   return temp_;
 END Get_Site_From_Inv;
 
-PROCEDURE Coreys_Release AS
+PROCEDURE Release_Orders AS
   --Select all available internal orders for release.
   CURSOR n_orders IS
   select order_no
@@ -66,7 +66,7 @@ PROCEDURE Coreys_Release AS
     for orders in n_orders loop
       customer_order_flow_api.process_from_release_order(orders.order_no);
     end loop;
-  END Coreys_Release;
+  END Release_Orders;
 
 FUNCTION Get_Sender_Id(Message_Id_ IN NUMBER) RETURN VARCHAR2
 IS
@@ -215,7 +215,7 @@ if (status_ = 0) then
   pick_up_date,rowversion,package_qty)
   values
   (delivery_key_,order_no_,tracking_number_,charge_,weight_,today_,today_,package_qty_);
-  if (coreys_package_api.checkit_dummy(delivery_key_) = 'FALSE') then
+  if (PACKAGE_api.Check_Del_Key(delivery_key_) = 'FALSE') then
     ps_delivery_detail_api.create_new_delivery(delivery_key_, order_no_);
   end if;
 end if;
@@ -242,7 +242,7 @@ commit;
 
 END Enter_Freight_Line;
 
-FUNCTION CheckIT_Dummy(delivery_key_ IN VARCHAR2) RETURN VARCHAR2
+FUNCTION Check_Del_Key(delivery_key_ IN VARCHAR2) RETURN VARCHAR2
 IS
 
   temp_ NUMBER := 0;
@@ -262,7 +262,7 @@ BEGIN
   else
     RETURN 'FALSE';
   end if;
-END CheckIT_Dummy;
+END Check_Del_Key;
 
 
 FUNCTION Get_Invo_Stat_Sum(statistic_no_ IN VARCHAR2, start_ IN VARCHAR2, end_ IN VARCHAR2) RETURN NUMBER
@@ -278,5 +278,5 @@ BEGIN
    end loop;
 END Get_Invo_Stat_Sum;
 
-END COREYS_PACKAGE_API;
+END PACKAGE_API;
 /
